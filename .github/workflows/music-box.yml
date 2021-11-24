@@ -10,9 +10,6 @@ jobs:
    steps:
      - uses: actions/checkout@v2
      - uses: gautamkrishnar/keepalive-workflow@master # using the workflow with default settings
-        with:
-          commit_message: Keeping this repo action alive
-
      - run: npm install
      - name: Update
        uses: ./
