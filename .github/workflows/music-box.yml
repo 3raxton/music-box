@@ -9,7 +9,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
      - uses: actions/checkout@v2
-#      - uses: gautamkrishnar/keepalive-workflow@master # using the workflow with default settings
+     - uses: gautamkrishnar/keepalive-workflow@master # using the workflow with default settings
      - run: npm install
      - name: Update
        uses: ./
