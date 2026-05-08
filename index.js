@@ -330,6 +330,7 @@ async function main() {
 function buildReportContent(artistsRaw) {
   const artists = Array.isArray(artistsRaw) ? artistsRaw : [];
   const numArtitst = Math.min(10, artists.length);
+  if (numArtitst === 0) return "No plays.";
   let playsTotal = 0;
   for (let i = 0; i < numArtitst; i++) {
     playsTotal += getArtistPlays(artists[i]);
