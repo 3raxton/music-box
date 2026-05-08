@@ -94,6 +94,29 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function chunkEntries(obj, chunkSize) {
+  const entries = Object.entries(obj);
+  const chunks = [];
+  for (let i = 0; i < entries.length; i += chunkSize) {
+    chunks.push(entries.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+async function updateGistFilesInBatches({ gistID, files, batchSize = 10 }) {
+  const keys = Object.keys(files || {});
+  if (keys.length === 0) return;
+
+  // GitHub can reject very large PATCH payloads; keep updates small and repeatable.
+  for (const chunk of chunkEntries(files, batchSize)) {
+    const chunkFiles = Object.fromEntries(chunk);
+    await octokit.gists.update({
+      gist_id: gistID,
+      files: chunkFiles,
+    });
+  }
+}
+
 function normalizeBackfillMode(value) {
   const v = String(value ?? "").trim().toLowerCase();
   if (v === "daily" || v === "weekly" || v === "both") return v;
@@ -273,10 +296,7 @@ async function main() {
     }
 
     if (Object.keys(files).length > 0) {
-      await octokit.gists.update({
-        gist_id: gistID,
-        files,
-      });
+      await updateGistFilesInBatches({ gistID, files, batchSize: 10 });
     }
     return;
   }
