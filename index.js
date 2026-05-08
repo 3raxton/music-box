@@ -110,10 +110,25 @@ async function updateGistFilesInBatches({ gistID, files, batchSize = 10 }) {
   // GitHub can reject very large PATCH payloads; keep updates small and repeatable.
   for (const chunk of chunkEntries(files, batchSize)) {
     const chunkFiles = Object.fromEntries(chunk);
-    await octokit.gists.update({
-      gist_id: gistID,
-      files: chunkFiles,
-    });
+    let attempt = 0;
+    // 409 can happen if another run updates the gist concurrently.
+    // Retry with backoff to let the other update finish.
+    while (true) {
+      try {
+        await octokit.gists.update({
+          gist_id: gistID,
+          files: chunkFiles,
+        });
+        break;
+      } catch (e) {
+        attempt += 1;
+        const status = e?.status;
+        if (attempt >= 6 || (status !== 409 && status !== 502 && status !== 503)) {
+          throw e;
+        }
+        await sleep(500 * attempt);
+      }
+    }
   }
 }
 

@@ -38,6 +38,10 @@ on:
     types: [music-box-keepalive]
   push:
     branches: master
+
+concurrency:
+  group: music-box-${{ github.repository }}-${{ github.workflow }}
+  cancel-in-progress: false
 jobs:
   musicbox:
     runs-on: ubuntu-latest
