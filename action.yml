@@ -12,7 +12,7 @@ description: GitHub Action for injecting last week's listening report from last.
 #   GIST_ID:
 
 runs:
-  using: node12
+  using: node24
   main: ./index.js
 
 branding:

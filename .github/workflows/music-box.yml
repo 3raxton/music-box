@@ -4,7 +4,36 @@ name: music-box
 on:
   schedule:
     - cron: '0 * * * *'  # hourly
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      backfill_mode:
+        description: "Backfill mode: weekly, daily, or both"
+        required: false
+        type: string
+      backfill_start:
+        description: "Backfill start date (YYYY-MM-DD), e.g. 2025-04-21"
+        required: false
+        type: string
+      backfill_end:
+        description: "Backfill end date (YYYY-MM-DD). Defaults to today."
+        required: false
+        type: string
+      backfill_limit:
+        description: "Backward-compat weekly limit (default 20)"
+        required: false
+        type: string
+      backfill_weekly_limit:
+        description: "Max weeks to backfill per run (default 20)"
+        required: false
+        type: string
+      backfill_daily_limit:
+        description: "Max days to backfill per run (default 20)"
+        required: false
+        type: string
+      backfill_delay_ms:
+        description: "Delay (ms) between Last.fm calls during backfill (default 300)"
+        required: false
+        type: string
   repository_dispatch:
     types: [music-box-keepalive]
   push:
@@ -18,13 +47,21 @@ jobs:
      - uses: actions/checkout@v4
      - uses: actions/setup-node@v4
        with:
-         node-version: 20
+         node-version: 24
          cache: npm
-     - run: npm ci
+     - run: npm install
      - name: Update
        uses: ./
        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
           LASTFM_KEY: ${{ secrets.LASTFM_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           LFMUSERNAME: ${{ secrets.LFMUSERNAME }}
           GIST_ID: ${{ secrets.GIST_ID }}
+          BACKFILL_MODE: ${{ inputs.backfill_mode || github.event.client_payload.backfill_mode }}
+          BACKFILL_START: ${{ inputs.backfill_start || github.event.client_payload.backfill_start }}
+          BACKFILL_END: ${{ inputs.backfill_end || github.event.client_payload.backfill_end }}
+          BACKFILL_LIMIT: ${{ inputs.backfill_limit || github.event.client_payload.backfill_limit }}
+          BACKFILL_WEEKLY_LIMIT: ${{ inputs.backfill_weekly_limit || github.event.client_payload.backfill_weekly_limit }}
+          BACKFILL_DAILY_LIMIT: ${{ inputs.backfill_daily_limit || github.event.client_payload.backfill_daily_limit }}
+          BACKFILL_DELAY_MS: ${{ inputs.backfill_delay_ms || github.event.client_payload.backfill_delay_ms }}
