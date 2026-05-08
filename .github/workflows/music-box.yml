@@ -4,18 +4,23 @@ name: music-box
 on:
   schedule:
     - cron: '0 * * * *'  # hourly
+  workflow_dispatch: {}
+  repository_dispatch:
+    types: [music-box-keepalive]
   push:
     branches: master
 jobs:
   musicbox:
-   runs-on: ubuntu-latest
-   steps:
-     - uses: actions/checkout@v2
-     - run: npm install
-     - name: Keepalive Workflow
-       # uses: gautamkrishnar/keepalive-workflow@2.0.9
-       # This workflow has been disabled by GitHub for violating terms of service — https://github.com/gautamkrishnar/keepalive-workflow
-       # If you need to raise it from the grave for a personal project, see here: https://web.archive.org/web/20250000000000*/https://github.com/gautamkrishnar/keepalive-workflow
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+     - uses: actions/checkout@v4
+     - uses: actions/setup-node@v4
+       with:
+         node-version: 20
+         cache: npm
+     - run: npm ci
      - name: Update
        uses: ./
        env:
